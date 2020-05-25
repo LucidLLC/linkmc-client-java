@@ -1,0 +1,7 @@
+src/main/java/io/dreamz/linkmc/Main.java
+*.iml
+.idea/
+target/
+dependency-reduced-pom.xml
+*.jar
+*.class
