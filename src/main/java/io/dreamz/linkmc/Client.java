@@ -1,32 +1,15 @@
 package io.dreamz.linkmc;
 
-import okhttp3.*;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 public final class Client {
-
-
-    private static class BaseURLInterceptor implements Interceptor {
-
-        private String baseUrl;
-
-        public BaseURLInterceptor(String baseUrl) {
-            this.baseUrl = baseUrl;
-        }
-
-
-        @NotNull
-        @Override
-        public Response intercept(@NotNull Chain chain) throws IOException {
-            Request.Builder baseurlReq = chain.request().newBuilder();
-            baseurlReq.url(baseUrl + chain.request().url().host());
-            return chain.proceed(baseurlReq.build());
-        }
-    }
 
     private static class AuthInterceptor implements Interceptor {
         private String key;
