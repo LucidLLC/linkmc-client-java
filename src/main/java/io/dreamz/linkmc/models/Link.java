@@ -1,6 +1,7 @@
 package io.dreamz.linkmc.models;
 
 import java.time.Instant;
+import java.util.Objects;
 
 public final class Link {
 
@@ -18,5 +19,30 @@ public final class Link {
 
     public Instant addedAt() {
         return addedAt;
+    }
+
+
+    @Override
+    public String toString() {
+        return "Link{" +
+                "service='" + service + '\'' +
+                ", username='" + username + '\'' +
+                ", addedAt=" + addedAt +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Link link = (Link) o;
+        return Objects.equals(service, link.service) &&
+                Objects.equals(username, link.username) &&
+                Objects.equals(addedAt, link.addedAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(service, username, addedAt);
     }
 }
