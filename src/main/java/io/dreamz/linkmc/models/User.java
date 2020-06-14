@@ -13,6 +13,10 @@ public final class User {
     private Set<PendingLink> pendingLinks;
 
 
+    public boolean hasLink(String service) {
+        return links.stream().anyMatch(link -> link.service().equalsIgnoreCase(service));
+    }
+
     public Set<Link> links() {
         return links;
     }
