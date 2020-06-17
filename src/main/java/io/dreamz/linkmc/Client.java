@@ -5,16 +5,25 @@ import com.google.gson.GsonBuilder;
 import io.dreamz.linkmc.gson.InstantTypeAdapter;
 import io.dreamz.linkmc.gson.UUIDTypeAdapter;
 import io.dreamz.linkmc.models.APIException;
+import io.dreamz.linkmc.models.Link;
 import io.dreamz.linkmc.models.User;
+import io.dreamz.linkmc.models.VerifyPayload;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.net.URI;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public final class Client {
 
@@ -35,6 +44,30 @@ public final class Client {
     }
 
 
+    private static class ClientWebSocketListener extends WebSocketListener {
+        private Gson gson;
+        private Set<Consumer<VerifyPayload>> listeners;
+
+        public ClientWebSocketListener(Gson gson, Set<Consumer<VerifyPayload>> listeners) {
+            this.gson = gson;
+            this.listeners = listeners;
+        }
+
+        @Override
+        public void onMessage(@NotNull WebSocket webSocket, @NotNull String text) {
+            try {
+                VerifyPayload verifyPayload = this.gson.fromJson(text, VerifyPayload.class);
+
+                for (Consumer<VerifyPayload> listener : this.listeners) {
+                    listener.accept(verifyPayload);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+
     public static Gson createDefaultGson() {
         return new GsonBuilder()
                 .registerTypeAdapter(UUID.class, new UUIDTypeAdapter())
@@ -45,10 +78,18 @@ public final class Client {
     private String apiBaseUrl;
     private OkHttpClient okHttpClient;
 
-    public Client(Gson gson, String apiBaseUrl, String key) {
+    private Set<Consumer<VerifyPayload>> listeners;
+
+    public Client(Gson gson, URI apiBaseUrl, String key) {
         this.gson = gson;
-        this.apiBaseUrl = apiBaseUrl;
-        this.okHttpClient = new OkHttpClient.Builder().addInterceptor(new AuthInterceptor(key)).callTimeout(5, TimeUnit.SECONDS).build();
+        this.apiBaseUrl = apiBaseUrl.getScheme() + "://" + apiBaseUrl.getHost() + ":" + apiBaseUrl.getPort();
+        this.okHttpClient = new OkHttpClient.Builder().addInterceptor(new AuthInterceptor(key)).callTimeout(5, TimeUnit.SECONDS)
+                .build();
+
+
+        this.listeners = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+        this.okHttpClient.newWebSocket(new Request.Builder().url("ws://" + apiBaseUrl.getHost() + ":" + apiBaseUrl.getPort() + "/messages").build(), new ClientWebSocketListener(gson, this.listeners));
     }
 
 
@@ -94,6 +135,18 @@ public final class Client {
 
     public CompletableFuture<String> startLink(String platform, UUID playerId, int expire) {
         return this.get(String.format("/startlink/%s/%s/%d", platform, playerId.toString(), expire), String.class);
+    }
+
+
+    /**
+     * Registers a verification listener which gets called
+     *
+     * @param verifyListener
+     * @return
+     */
+    public Client onVerify(Consumer<VerifyPayload> verifyListener) {
+        this.listeners.add(verifyListener);
+        return this;
     }
 
 
