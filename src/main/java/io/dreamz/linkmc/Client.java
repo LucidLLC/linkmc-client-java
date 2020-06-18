@@ -5,12 +5,10 @@ import com.google.gson.GsonBuilder;
 import io.dreamz.linkmc.gson.InstantTypeAdapter;
 import io.dreamz.linkmc.gson.UUIDTypeAdapter;
 import io.dreamz.linkmc.models.APIException;
-import io.dreamz.linkmc.models.Link;
 import io.dreamz.linkmc.models.User;
 import io.dreamz.linkmc.models.VerifyPayload;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URI;
@@ -22,7 +20,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public final class Client {
