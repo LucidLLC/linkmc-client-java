@@ -4,9 +4,19 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+
     <groupId>io.dreamz</groupId>
     <artifactId>linkmc-java-client</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <distributionManagement>
+        <repository>
+            <id>dreamz-release</id>
+            <url>https://repo.dreamz.io/repository/dreamz/</url>
+        </repository>
+    </distributionManagement>
+
     <build>
         <plugins>
             <plugin>
@@ -19,8 +29,6 @@
             </plugin>
         </plugins>
     </build>
-    <packaging>jar</packaging>
-
 
     <dependencies>
         <dependency>
