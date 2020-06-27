@@ -8,6 +8,9 @@ import io.dreamz.linkmc.models.APIException;
 import io.dreamz.linkmc.models.User;
 import io.dreamz.linkmc.models.VerifyPayload;
 import okhttp3.*;
+import okhttp3.internal.ws.WebSocketProtocol;
+import okhttp3.internal.ws.WebSocketWriter;
+import okio.ByteString;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -50,16 +53,21 @@ public final class Client {
             this.listeners = listeners;
         }
 
+
         @Override
         public void onMessage(@NotNull WebSocket webSocket, @NotNull String text) {
-            try {
-                VerifyPayload verifyPayload = this.gson.fromJson(text, VerifyPayload.class);
+            if (text.equalsIgnoreCase("ping")) {
+                webSocket.send("PONG");
+            } else {
+                try {
+                    VerifyPayload verifyPayload = this.gson.fromJson(text, VerifyPayload.class);
 
-                for (Consumer<VerifyPayload> listener : this.listeners) {
-                    listener.accept(verifyPayload);
+                    for (Consumer<VerifyPayload> listener : this.listeners) {
+                        listener.accept(verifyPayload);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
-            } catch (Exception ex) {
-                ex.printStackTrace();
             }
         }
     }
@@ -80,13 +88,14 @@ public final class Client {
     public Client(Gson gson, URI apiBaseUrl, String key) {
         this.gson = gson;
         this.apiBaseUrl = apiBaseUrl.getScheme() + "://" + apiBaseUrl.getHost() + ":" + apiBaseUrl.getPort();
-        this.okHttpClient = new OkHttpClient.Builder().addInterceptor(new AuthInterceptor(key)).callTimeout(5, TimeUnit.SECONDS)
+        this.okHttpClient = new OkHttpClient.Builder()
+                .pingInterval(10, TimeUnit.SECONDS).addInterceptor(new AuthInterceptor(key)).callTimeout(5, TimeUnit.SECONDS)
                 .build();
 
 
         this.listeners = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-        this.okHttpClient.newWebSocket(new Request.Builder().url("ws://" + apiBaseUrl.getHost() + ":" + apiBaseUrl.getPort() + "/messages").build(), new ClientWebSocketListener(gson, this.listeners));
+        WebSocket webSocket = this.okHttpClient.newWebSocket(new Request.Builder().url("ws://" + apiBaseUrl.getHost() + ":" + apiBaseUrl.getPort() + "/messages").build(), new ClientWebSocketListener(gson, this.listeners));
     }
 
 
