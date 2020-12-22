@@ -9,13 +9,13 @@ public final class InstantTypeAdapter implements JsonDeserializer<Instant>, Json
     @Override
     public Instant deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
         if (jsonElement.isJsonPrimitive()) {
-            return Instant.ofEpochMilli(jsonElement.getAsLong());
+            return Instant.ofEpochSecond(jsonElement.getAsLong());
         }
         return null;
     }
 
     @Override
     public JsonElement serialize(Instant instant, Type type, JsonSerializationContext jsonSerializationContext) {
-        return new JsonPrimitive(instant.toEpochMilli());
+        return new JsonPrimitive(instant.getEpochSecond());
     }
 }
